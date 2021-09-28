@@ -1,0 +1,65 @@
+@import 'variables';
+
+.container {
+  // max-width: 1400px;
+  padding: 50px;
+  margin: 10px auto;
+  overflow: hidden;
+}
+
+.lead {
+  margin: 1rem 0;
+  font-size: 25px;
+}
+
+.text-center {
+  text-align: center;
+}
+
+a {
+  text-decoration: none;
+  color: (lighten($secondary-color, 10%));
+}
+
+ul {
+  list-style-type: none;
+}
+
+i {
+  display: inline-block;
+}
+
+.no-select {
+  user-select: none;
+}
+
+.player-deck-button {
+  width: 70px;
+  height: 100px;
+  padding: 5px;
+  margin: 5px;
+  border: 5px double rgb(0, 0, 0);
+  border-radius: 5px;
+}
+
+button {
+  border: none;
+  outline: none;
+}
+
+$spaceamounts: (1, 2, 3, 4, 5);
+
+@each $space in $spaceamounts {
+  .m-#{$space} {
+    margin: #{$space}rem;
+  }
+  .my-#{$space} {
+    margin: #{$space}rem 0;
+  }
+  .p-#{$space} {
+    padding: #{$space}rem;
+  }
+  .py-#{$space} {
+    padding: #{$space}rem 0;
+  }
+}

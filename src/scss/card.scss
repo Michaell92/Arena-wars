@@ -1,0 +1,100 @@
+@import 'variables';
+
+#card-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-direction: column;
+  overflow: hidden;
+  background: aliceblue;
+  width: 130px;
+  height: 210px;
+  padding: 5px;
+  margin: 5px;
+  border: 8px double rgb(42, 16, 89);
+  border-radius: 10px;
+  cursor: pointer;
+
+  & #card-main {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    img {
+      width: 40px;
+    }
+    #card-name {
+      font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande',
+        'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+      color: darkred;
+      margin: 5px 0;
+      font-size: 13px;
+    }
+    #desc {
+      font-size: 10px;
+      color: blue;
+    }
+  }
+
+  & #card-top-info,
+  & #card-bottom-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    position: relative;
+
+    & > span:nth-child(2) {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    & span {
+      font-size: 8px;
+      font-weight: bold;
+      border: 2px solid orange;
+      border-radius: 5px;
+      padding: 2px 3px;
+    }
+  }
+
+  #card-top-info {
+    #card-health {
+      border-color: lightblue;
+    }
+    #card-class {
+      border-color: lightblue;
+    }
+  }
+
+  #card-bottom-info {
+    #card-cost {
+      border: 3px solid darkmagenta;
+      font-size: 13px;
+    }
+  }
+}
+
+.cardActive {
+  transform: scale(1.02);
+  box-shadow: 1px 1px 27px -2px rgba(96, 0, 255, 0.7);
+}
+
+.errorActive {
+  position: absolute;
+  color: red;
+  font-size: 15px;
+  font-weight: bold;
+}
+
+.error-fade-enter-active,
+.error-fade-leave-active {
+  transition: opacity 1s ease-in-out;
+}
+
+.error-fade-enter-from,
+.error-fade-leave-to {
+  opacity: 0;
+}
