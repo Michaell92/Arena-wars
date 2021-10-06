@@ -1,21 +1,45 @@
 <template>
   <div class="container">
+    <transition name="game-over">
+      <game-over
+        v-if="(playerOneHP <= 0 || playerTwoHP <= 0) && showPopup"
+        id="gameover"
+        :player="playerOneHP <= 0 ? 'One' : playerTwoHP <= 0 ? 'Two' : ''"
+        @close="closePopup($event)"
+      ></game-over>
+    </transition>
     <transition name="fade">
       <div v-if="playerTwoReady" id="ready-popup">Your turn!</div>
     </transition>
     <div id="main">
-      <button @click="startNewGame" id="game-reset">New Game</button>
+      <div id="top">
+        <button @click="startNewGame" id="game-reset">New Game</button>
+        <div id="switch">
+          <p>Helper:</p>
+          <div class="button" id="button-1">
+            <input type="checkbox" class="checkbox" v-model="helperSwitch" />
+            <div class="first"></div>
+            <div class="second"></div>
+          </div>
+        </div>
+      </div>
+
       <!-- First player base -->
       <div id="player-1">
         <div id="player-main-section">
           <!-- Player info -->
-          <div class="player-info" style="margin-bottom: 30px">
+          <div class="player-info">
             <div class="player-icon">
               <span>AI</span>
               <img
                 src="~@/assets/bot.svg"
                 alt="bot"
                 id="bot-icon"
+                :class="{
+                  attackable:
+                    Object.keys(activatedCardHand).length &&
+                    Object.keys(activatedFightCard).length,
+                }"
                 @click="
                   attackedPlayerOne(
                     activatedFightCard,
@@ -26,6 +50,18 @@
             </div>
             <div class="player-right">
               <div class="player-hp">
+                <transition name="attack-message">
+                  <p
+                    v-if="
+                      hpChange.name === 'player' &&
+                      hpChange.player === 'one' &&
+                      hpChange.active
+                    "
+                    class="attack-info"
+                  >
+                    {{ hpChange.health }}
+                  </p>
+                </transition>
                 <span>Health: </span> {{ playerOneHP }}
               </div>
               <div class="player-energy">
@@ -35,21 +71,23 @@
           </div>
           <div id="player-1-main">
             <!-- Dealt cards from the deck -->
-            <div id="player-1-hand">
+            <div id="player-1-hand" :class="{ m1: playerOneHand.length > 0 }">
               <!-- <img src="@/assets/card-game.svg" alt="card" /> -->
-              <base-card
-                v-for="card in playerOneHand"
-                :key="card.name"
-                :name="card.name"
-                :attack="card.attack"
-                :defense="card.defense"
-                :specialDesc="card.specialDesc"
-                :specialEffect="card.specialEffect"
-                :health="card.health"
-                :race="card.race"
-                :cost="card.cost"
-                :cardImage="card.image"
-              ></base-card>
+              <transition-group name="flip-list-2">
+                <base-card
+                  v-for="card in playerOneHand"
+                  :key="card.name"
+                  :name="card.name"
+                  :attack="card.attack"
+                  :defense="card.defense"
+                  :specialDesc="card.specialDesc"
+                  :specialEffect="card.specialEffect"
+                  :health="card.health"
+                  :race="card.race"
+                  :cost="card.cost"
+                  :cardImage="card.image"
+                ></base-card>
+              </transition-group>
             </div>
           </div>
         </div>
@@ -68,29 +106,35 @@
       <!-- Battleground with deployed cards -->
       <div id="battleground">
         <div id="player-1-deployed">
-          <base-card
-            v-for="card in playerOneDeployedDeck"
-            :key="card.name"
-            :name="card.name"
-            :attack="card.attack"
-            :defense="card.defense"
-            :specialDesc="card.specialDesc"
-            :specialEffect="card.specialEffect"
-            :health="card.health"
-            :race="card.race"
-            :cost="card.cost"
-            :cardImage="card.image"
-            player="one"
-            @monsterDestroyed="removeMonsterFromDeployed"
-            @click="
-              attacked(
-                activatedFightCard,
-                card,
-                playerOneDeployedDeck,
-                this.playerTwoFightingPhase
-              )
-            "
-          ></base-card>
+          <transition-group name="animate-deployed">
+            <base-card
+              v-for="card in playerOneDeployedDeck"
+              :key="card.name"
+              :name="card.name"
+              :attack="card.attack"
+              :defense="card.defense"
+              :specialDesc="card.specialDesc"
+              :specialEffect="card.specialEffect"
+              :health="card.health"
+              :race="card.race"
+              :cost="card.cost"
+              :cardImage="card.image"
+              :activeCardHand="activatedCardHand.name"
+              :activeFightCard="activatedFightCard.name"
+              player="one"
+              deck="deployed"
+              :hpChange="hpChange"
+              @monsterDestroyed="removeMonsterFromDeployed"
+              @click="
+                attacked(
+                  activatedFightCard,
+                  card,
+                  playerOneDeployedDeck,
+                  this.playerTwoFightingPhase
+                )
+              "
+            ></base-card>
+          </transition-group>
         </div>
         <h1 class="no-select">Battleground</h1>
         <div id="player-2-deployed">
@@ -109,12 +153,25 @@
               :cardImage="card.image"
               :activeCardHand="activatedCardHand.name"
               :turnError="turnError"
-              :activeFightCard="activatedFightCard"
               player="two"
+              deck="deployed"
+              :hpChange="hpChange"
               @monsterDestroyed="removeMonsterFromDeployed"
               @click="selectAttackingCard(card, playerTwoDeployedDeck)"
             ></base-card>
           </transition-group>
+        </div>
+
+        <div
+          v-if="
+            playerTwoFightingPhase &&
+            Object.keys(activatedFightCard).length === 0 &&
+            !helperSwitch &&
+            activePlayer === 'Player-2'
+          "
+          id="fightInstruction"
+        >
+          Select attacking card!
         </div>
       </div>
       <!-- Second player base -->
@@ -138,6 +195,7 @@
                   :activeCardHand="activatedCardHand.name"
                   :energyError="energyError"
                   :turnError="turnError"
+                  player="two"
                   @click="
                     changeHandCardStatusAndDeploy(
                       playerTwoDeployedDeck,
@@ -151,10 +209,33 @@
               </transition-group>
             </div>
           </div>
-          <div class="player-info" style="margin-top: 30px">
+          <div
+            v-if="
+              playerTwoDeploymentPhase &&
+              !helperSwitch &&
+              activePlayer === 'Player-2'
+            "
+            id="deployInstruction"
+            class="text-center"
+          >
+            Tap twice on card to deploy!
+          </div>
+          <div class="player-info">
             <div class="player-icon">Player</div>
             <div class="player-right">
               <div class="player-hp">
+                <transition name="attack-message">
+                  <p
+                    v-if="
+                      hpChange.name === 'player' &&
+                      hpChange.player === 'two' &&
+                      hpChange.active
+                    "
+                    class="attack-info-player"
+                  >
+                    {{ hpChange.health }}
+                  </p>
+                </transition>
                 <span>Health: </span> {{ playerTwoHP }}
               </div>
               <div class="player-energy">
@@ -164,6 +245,15 @@
           </div>
         </div>
         <div id="player-2-deck">
+          <transition name="fade-out">
+            <p
+              v-if="activePlayer === 'Player-2' && currentMove > 0"
+              id="end-turn"
+              @click="endCurrentTurnAndInitiateNext('two')"
+            >
+              End turn
+            </p>
+          </transition>
           <button
             @click="
               playerTwoCardDeal(
@@ -177,50 +267,77 @@
             <img src="@/assets/cards.svg" alt="card-deck" />
           </button>
           <transition name="fade-out">
-            <div id="instruction" v-if="currentMove === 1">
+            <div id="instruction" v-if="currentMove === 0">
               Click on deck to draw a card!
             </div>
           </transition>
+          <div
+            id="arrow"
+            v-if="
+              currentMove > 0 &&
+              playerTwoDrawAvailable &&
+              activePlayer === 'Player-2'
+            "
+          ></div>
         </div>
       </div>
     </div>
   </div>
 </template>
 
+        
 <script>
 import BaseCard from "../components/ui/BaseCard.vue";
+import GameOver from "../components/ui/GameOver.vue";
 export default {
   components: {
     BaseCard,
+    GameOver,
   },
   data() {
     return {
       // Game state
       activePlayer: "Player-2",
       currentMove: 0,
-      playerOneHP: 100,
-      playerTwoHP: 100,
+      helperSwitch: false,
+      playerOneHP: 10,
+      playerTwoHP: 10,
       playerOneEnergy: 5,
       playerTwoEnergy: 5,
       playerOneHand: [],
       playerTwoHand: [],
       playerOneCardActive: false,
       playerTwoCardActive: false,
-      activatedCardHand: "",
-      activatedFightCard: "",
+      activatedCardHand: {},
+      activatedFightCard: {},
       playerOneDeployedDeck: [],
       playerTwoDeployedDeck: [],
       playerOneGraveyard: [],
       playerTwoGraveyard: [],
-      playerOneDrawAvailable: false,
-      playerTwoDrawAvailable: true,
+      playerOneDraw: false,
+      playerTwoDraw: true,
       playerTwoReady: false,
       energyError: false,
       turnError: false,
       testDeploy: false,
       attackErrorTurn: false,
-      attackErrorPhase: false,
+      showPopup: true,
+      hpChange: {
+        name: "",
+        health: 0,
+        player: "",
+        active: false,
+      },
     };
+  },
+  watch: {
+    gameOver(val) {
+      if (val) {
+        this.activePlayer = "";
+        this.playerOneDraw = false;
+        this.playerTwoDraw = false;
+      }
+    },
   },
   computed: {
     // Main card set
@@ -230,7 +347,7 @@ export default {
 
     // Shuffled set for player one
     playerOneDeck() {
-      let cards = this.allCards.slice(0);
+      let cards = JSON.parse(JSON.stringify(this.allCards));
       this.shuffle(cards.length, cards);
 
       return cards;
@@ -238,10 +355,21 @@ export default {
 
     // Shuffled set for player two
     playerTwoDeck() {
-      let cards = this.allCards.slice(0);
+      let cards = JSON.parse(JSON.stringify(this.allCards));
       this.shuffle(cards.length, cards);
 
       return cards;
+    },
+    // Check if game is over
+    gameOver() {
+      return this.playerOneHP <= 0 || this.playerTwoHP <= 0;
+    },
+    // Check if draw is available
+    playerOneDrawAvailable() {
+      return this.playerOneDraw && this.playerOneDeck.length > 0;
+    },
+    playerTwoDrawAvailable() {
+      return this.playerTwoDraw && this.playerTwoDeck.length > 0;
     },
     // Check if deployment phase is over
     playerTwoDeploymentPhase() {
@@ -268,7 +396,7 @@ export default {
     // Fight phase check for enemy
     playerOneFightingPhase() {
       // Check if deployment phase is over
-      if (!this.playerOneDeploymentPhase) {
+      if (!this.playerOneDeploymentPhase && !this.playerOneDrawAvailable) {
         // Activate fighting phase
         for (let i = 0; i < this.playerOneDeployedDeck.length; i++) {
           if (this.playerOneDeployedDeck[i].attackReady === true) {
@@ -281,7 +409,7 @@ export default {
     },
     // Fight phase check for player
     playerTwoFightingPhase() {
-      if (!this.playerTwoDeploymentPhase) {
+      if (!this.playerTwoDrawAvailable) {
         for (let i = 0; i < this.playerTwoDeployedDeck.length; i++) {
           if (this.playerTwoDeployedDeck[i].attackReady === true) {
             return true;
@@ -297,7 +425,7 @@ export default {
     startNewGame() {
       // Reset game state
       this.activePlayer = "Player-2";
-      this.currentMove = 1;
+      this.currentMove = 0;
       this.playerOneHP = 100;
       this.playerTwoHP = 100;
       this.playerOneEnergy = 5;
@@ -306,22 +434,27 @@ export default {
       this.playerTwoHand = [];
       this.playerOneCardActive = false;
       this.playerTwoCardActive = false;
-      this.activatedCardHand = "";
-      this.activatedFightCard = "";
+      this.activatedCardHand = {};
+      this.activatedFightCard = {};
       this.playerOneDeployedDeck = [];
       this.playerTwoDeployedDeck = [];
-      this.playerOneDrawAvailable = false;
-      this.playerTwoDrawAvailable = true;
+      this.playerOneDraw = false;
+      this.playerTwoDraw = true;
       this.playerTwoReady = false;
       this.energyError = false;
       this.turnError = false;
       this.testDeploy = false;
+      this.attackErrorTurn = false;
+      this.showPopup = true;
+      this.hpChange = {
+        name: "",
+        health: 0,
+        player: "",
+        active: false,
+      };
 
-      // Reset deploy status
-      this.undeploy(this.allCards);
-
-      // Reset fight status
-      this.resetFightStatus(this.allCards);
+      // Reset store state
+      this.$store.dispatch("resetState");
 
       // Reshuffle decks
       this.shuffle(this.allCards.length, this.allCards);
@@ -349,13 +482,11 @@ export default {
       }
     },
     // Deal a card for a player, go through all turn phases and switch to enemy turn
-    playerTwoCardDeal(deckTwo, handTwo, deployedTwo) {
-      deployedTwo;
+    playerTwoCardDeal(deckTwo, handTwo) {
       // Deal a card for player if it is your turn and draw is available
       if (
         this.activePlayer === "Player-2" &&
-        this.playerTwoDrawAvailable === true &&
-        deckTwo.length > 0
+        this.playerTwoDrawAvailable === true
       ) {
         // Draw a card and make drawing cards for player unavailable
         // Increase move counter
@@ -365,7 +496,7 @@ export default {
         this.playerCardDeal(deckTwo, handTwo);
 
         // End player drawing phase
-        this.playerTwoDrawAvailable = false;
+        this.playerTwoDraw = false;
 
         // Check if its end of the turn and start enemy turn
         if (!this.playerTwoFightingPhase && !this.playerTwoDeploymentPhase) {
@@ -378,45 +509,50 @@ export default {
     playerOneCardDeal(deckOne, handOne, deployedOne) {
       setTimeout(() => {
         // Deal a card for enemy if it is correct turn and draw is available
-        if (
-          this.activePlayer === "Player-1" &&
-          this.playerOneDrawAvailable === true
-        ) {
+        if (this.activePlayer === "Player-1" && this.playerOneDraw === true) {
           // Deal card
           this.playerCardDeal(deckOne, handOne);
 
           // Invalidate draw availability
-          this.playerOneDrawAvailable = false;
+          this.playerOneDraw = false;
 
-          // Choose a card for deployment
-          if (this.playerOneDeploymentPhase) {
-            // Select a card
-            const card = this.cardDeploymentSelect(handOne);
+          setTimeout(() => {
+            // Choose a card for deployment
+            if (this.playerOneDeploymentPhase) {
+              // Select a card
+              const card = this.cardDeploymentSelect(handOne);
 
-            if (card) {
-              // Get final energy result
-              const energyResult = this.playerOneEnergy - card.cost;
+              if (card && this.activePlayer === "Player-1") {
+                // Get final energy result
+                const energyResult = this.playerOneEnergy - card.cost;
 
-              // Deploy cards for enemy
-              this.deployCard(
-                handOne,
-                card.name,
-                energyResult,
-                "one",
-                deployedOne
-              );
+                // Deploy cards for enemy
+                this.deployCard(
+                  handOne,
+                  card.name,
+                  energyResult,
+                  "one",
+                  deployedOne
+                );
+              }
             }
-          }
 
-          if (this.playerOneFightingPhase) {
-            // Initiate fight phase
-            this.playerOneStartFightPhase(deployedOne);
-          }
+            if (
+              this.playerOneFightingPhase &&
+              this.activePlayer === "Player-1"
+            ) {
+              // Initiate fight phase
+              this.playerOneStartFightPhase(deployedOne);
+            }
 
-          // Check if its end of the turn and start player turn
-          if (!this.playerOneDeploymentPhase && !this.playerOneFightingPhase) {
-            this.endCurrentTurnAndInitiateNext("one");
-          }
+            // Check if its end of the turn and start player turn
+            if (
+              !this.playerOneDeploymentPhase &&
+              !this.playerOneFightingPhase
+            ) {
+              this.endCurrentTurnAndInitiateNext("one");
+            }
+          }, 500);
         }
       }, 1000);
     },
@@ -424,18 +560,6 @@ export default {
     makeDeployable(handDeck) {
       for (let i = 0; i < handDeck.length; i++) {
         handDeck[i].deployReady = true;
-      }
-    },
-    // Undeploy cards
-    undeploy(deck) {
-      for (let i = 0; i < deck.length; i++) {
-        deck[i].deployReady = false;
-      }
-    },
-    // Reset fight status
-    resetFightStatus(deck) {
-      for (let i = 0; i < deck.length; i++) {
-        deck[i].attackReady = false;
       }
     },
     // Select a card for oponents deployment
@@ -509,50 +633,52 @@ export default {
     },
     // Check if selected card is activated and deploy if it is
     changeHandCardStatusAndDeploy(deck, hand, card, playerEnergy, player) {
-      // Check if selected card is activated
-      if (this.activatedCardHand.name !== card.name) {
-        this.activatedCardHand = card;
-      } else {
-        // Reset activated card name
-        this.activatedCardHand = "";
-
-        // Get card and deploy it if there is enough energy
-        const energyResult = playerEnergy - card.cost;
-
-        if (energyResult >= 0 && card.deployReady) {
-          // Deploy card for player
-          this.deployCard(hand, card.name, energyResult, player, deck);
-
-          // Check if its enemy turn
-          if (
-            !this.playerTwoDeploymentPhase &&
-            !this.playerTwoDrawAvailable &&
-            !this.playerTwoFightingPhase
-          ) {
-            this.endCurrentTurnAndInitiateNext("two");
-          }
-        } else {
-          // Set error message
-          if (energyResult < 0) {
-            this.energyError = true;
-          }
-          if (!card.deployReady) {
-            this.turnError = true;
-          }
-
-          // Set activated card name to match correct card
+      if (this.activePlayer === "Player-2") {
+        // Check if selected card is activated
+        if (this.activatedCardHand.name !== card.name) {
           this.activatedCardHand = card;
+        } else {
+          // Reset activated card name
+          this.activatedCardHand = {};
 
-          setTimeout(() => {
-            // Set activated card name
-            this.activatedCardHand = "";
-          }, 100);
+          // Get card and deploy it if there is enough energy
+          const energyResult = playerEnergy - card.cost;
 
-          // Remove error message
-          setTimeout(() => {
-            this.energyError = false;
-            this.turnError = false;
-          }, 1000);
+          if (energyResult >= 0 && card.deployReady) {
+            // Deploy card for player
+            this.deployCard(hand, card.name, energyResult, player, deck);
+
+            // Check if its enemy turn
+            if (
+              !this.playerTwoDeploymentPhase &&
+              !this.playerTwoDrawAvailable &&
+              !this.playerTwoFightingPhase
+            ) {
+              this.endCurrentTurnAndInitiateNext("two");
+            }
+          } else {
+            // Set error message
+            if (energyResult < 0) {
+              this.energyError = true;
+            }
+            if (!card.deployReady) {
+              this.turnError = true;
+            }
+
+            // Set activated card name to match correct card
+            this.activatedCardHand = card;
+
+            setTimeout(() => {
+              // Set activated card name
+              this.activatedCardHand = {};
+            }, 100);
+
+            // Remove error message
+            setTimeout(() => {
+              this.energyError = false;
+              this.turnError = false;
+            }, 1000);
+          }
         }
       }
     },
@@ -594,28 +720,23 @@ export default {
         this.activatedFightCard = card;
       } else {
         // Reset activated card name
-        this.activatedCardHand = "";
+        this.activatedCardHand = {};
 
         // Use special
       }
     },
+    // Player one attacked
     attacked(attacker, attacked) {
-      if (this.playerOneDeploymentPhase) {
-        // Get info for error activation
-        this.attackErrorPhase = true;
-        this.activatedFightCard = attacker;
-
-        setTimeout(() => {
-          this.attackErrorPhase = false;
-          this.activatedFightCard = "";
-        }, 1000);
-      } else {
-        if (attacker.attackReady) {
+      if (this.activePlayer === "Player-2") {
+        if (attacker.attackReady && !this.playerTwoDrawAvailable) {
           // Calculate attack after defense
           const calcAttack = this.calcAttack(attacker.attack, attacked.defense);
 
           // Calculate remaining hp after attacking
           attacked.health = attacked.health - calcAttack;
+
+          // Add attack animation
+          this.addAttackAnimation(attacked.name, calcAttack, "one");
 
           // Invalidate attacking card
           attacker.attackReady = false;
@@ -635,29 +756,23 @@ export default {
 
           setTimeout(() => {
             this.attackErrorTurn = false;
-            this.activatedFightCard = "";
+            this.activatedFightCard = {};
           }, 1000);
         }
-      }
 
-      // Reset card status
-      this.activatedFightCard = "";
-      this.activatedCardHand = "";
+        // Reset card status
+        this.activatedFightCard = {};
+        this.activatedCardHand = {};
+      }
     },
     // Recalculate player one hp after attack
     attackedPlayerOne(attacker) {
-      if (this.playerOneDeploymentPhase) {
-        // Get info for error activation
-        this.attackErrorPhase = true;
-        this.activatedFightCard = attacker;
-
-        setTimeout(() => {
-          this.attackErrorPhase = false;
-          this.activatedFightCard = "";
-        }, 1000);
-      } else {
-        if (attacker.attackReady) {
+      if (this.activePlayer === "Player-2") {
+        if (attacker.attackReady && !this.playerTwoDrawAvailable) {
           this.playerOneHP = this.playerOneHP - attacker.attack;
+
+          // Add attack animation
+          this.addAttackAnimation("player", attacker.attack, "one");
 
           // Reset attacker fight readiness
           attacker.attackReady = false;
@@ -677,13 +792,13 @@ export default {
 
           setTimeout(() => {
             this.attackErrorTurn = false;
-            this.activatedFightCard = "";
+            this.activatedFightCard = {};
           }, 1000);
         }
+        // Reset card status
+        this.activatedFightCard = {};
+        this.activatedCardHand = {};
       }
-      // Reset card status
-      this.activatedFightCard = "";
-      this.activatedCardHand = "";
     },
     // Start attack phase for player one
     playerOneStartFightPhase(attackingDeck) {
@@ -693,40 +808,94 @@ export default {
       // And attack player if there are not
       if (enemyDeck.length === 0) {
         for (let i = 0; i < attackingDeck.length; i++) {
-          if (attackingDeck[i].attackReady) {
-            // Recalculate enemy health
-            this.playerOneHP = this.playerOneHP - attackingDeck[i].attack;
+          if (attackingDeck[i].attackReady && attackingDeck[i].health > 0) {
+            setTimeout(() => {
+              // Recalculate enemy health
+              this.playerTwoHP = this.playerTwoHP - attackingDeck[i].attack;
 
-            // End attacking turn for the card
-            attackingDeck[i].attackReady = false;
+              // Add attack animation
+              this.addAttackAnimation("player", attackingDeck[i].attack, "two");
+
+              // End attacking turn for the card
+              attackingDeck[i].attackReady = false;
+
+              // Check if its end of the turn and start player turn
+              if (
+                !this.playerOneDeploymentPhase &&
+                !this.playerOneFightingPhase
+              ) {
+                this.endCurrentTurnAndInitiateNext("one");
+              }
+            }, 500);
           }
         }
       } else {
-        // Sort by lowest hp
-        const enemySorted = enemyDeck.sort((a, b) => {
-          a.health - b.health;
-        });
-
         // Loop deck and attack enemy with lowest hp
         for (let i = 0; i < attackingDeck.length; i++) {
-          if (attackingDeck[i].attackReady) {
-            // Calculate attack after defense
-            const calcAttack = this.calcAttack(
-              attackingDeck[i].attack,
-              enemySorted[0].defense
-            );
+          if (
+            attackingDeck[i].attackReady &&
+            attackingDeck[i].health > 0 &&
+            enemyDeck.length > 0
+          ) {
+            setTimeout(() => {
+              // Check if there are enemy monsters left
+              if (enemyDeck.length > 0) {
+                // Find monster with lowest hp
+                const lowestHPEnemy = enemyDeck.reduce(this.findLowestHP);
 
-            enemySorted[0].health = enemySorted[0].health - calcAttack;
+                // Calculate attack after defense
+                const calcAttack = this.calcAttack(
+                  attackingDeck[i].attack,
+                  lowestHPEnemy.defense
+                );
 
-            // End attacking turn for the card
-            attackingDeck[i].attackReady = false;
+                // Recalculate enemy hp
+                lowestHPEnemy.health = lowestHPEnemy.health - calcAttack;
+
+                // Add attack animation
+                this.addAttackAnimation(lowestHPEnemy.name, calcAttack, "two");
+                // If there are no enemy monsters left, attack enemy player
+              } else {
+                // Recalculate enemy player health
+                this.playerTwoHP = this.playerTwoHP - attackingDeck[i].attack;
+
+                // Add attack animation
+                this.addAttackAnimation(
+                  "player",
+                  attackingDeck[i].attack,
+                  "two"
+                );
+              }
+
+              // End attacking turn for the card
+              attackingDeck[i].attackReady = false;
+
+              // Check if its end of the turn and start player turn
+              if (
+                !this.playerOneDeploymentPhase &&
+                !this.playerOneFightingPhase
+              ) {
+                this.endCurrentTurnAndInitiateNext("one");
+              }
+            }, 500 + i * 1000);
           }
         }
       }
     },
-removeMonsterFromDeployed(monsterInfo) {
-  console.log(monsterInfo)
-},
+    // Remove destroyed monster
+    removeMonsterFromDeployed(monsterInfo) {
+      let deck = "";
+      // Get correct deck
+      if (monsterInfo.player === "one") {
+        deck = this.playerOneDeployedDeck;
+      } else {
+        deck = this.playerTwoDeployedDeck;
+      }
+
+      // Get id and remove card
+      const id = deck.findIndex((card) => card.name === monsterInfo.name);
+      deck.splice(id, 1);
+    },
     endTurn(player) {
       if (player === "one") {
         // Add energy for enemy
@@ -734,12 +903,12 @@ removeMonsterFromDeployed(monsterInfo) {
 
         // Change turn to player
         this.activePlayer = "Player-2";
-        this.playerTwoDrawAvailable = true;
+        this.playerTwoDraw = true;
 
         // Add animation delay
         setTimeout(() => {
           this.playerTwoReady = true;
-        }, 1000);
+        }, 500);
 
         setTimeout(() => {
           this.playerTwoReady = false;
@@ -750,14 +919,14 @@ removeMonsterFromDeployed(monsterInfo) {
 
         // Change turn to enemy
         this.activePlayer = "Player-1";
-        this.playerOneDrawAvailable = true;
+        this.playerOneDraw = true;
       }
     },
     // End current turn and start next one
     endCurrentTurnAndInitiateNext(player) {
       if (player === "one") {
         // End current turn
-        this.endTurn("one");
+        this.endTurn(player);
 
         // Make player cards deployable
         this.makeDeployable(this.playerTwoHand);
@@ -766,9 +935,9 @@ removeMonsterFromDeployed(monsterInfo) {
         if (this.playerTwoDeployedDeck.length > 0) {
           this.initiateFightPhase(this.playerTwoDeployedDeck);
         }
-      } else {
+      } else if (player === "two") {
         // End player turn
-        this.endTurn("two");
+        this.endTurn(player);
 
         // Deployment phase activation for enemy
         this.makeDeployable(this.playerOneHand);
@@ -784,15 +953,45 @@ removeMonsterFromDeployed(monsterInfo) {
         );
       }
     },
+    // Add attack animation and information
+    addAttackAnimation(attackedName, health, player) {
+      // Add animation
+      let hpChange = {
+        name: attackedName,
+        health,
+        player: player,
+        active: true,
+      };
 
+      this.hpChange = { ...this.hpChange, ...hpChange };
+
+      // Remove animation
+      setTimeout(() => {
+        this.hpChange.active = false;
+      }, 500);
+    },
+    // Close gameover popup
+    closePopup(newGame) {
+      // Check if pop is just closing or starting a new game
+      if (newGame) {
+        this.startNewGame();
+      } else {
+        this.showPopup = false;
+      }
+    },
     // Randomize function
     randomize(n) {
       return Math.floor(Math.random() * n);
     },
+    // Calculate attack after defense
     calcAttack(attack, defense) {
       const calc = Math.ceil(attack - defense / 3);
 
       return calc > 0 ? calc : 1;
+    },
+    // Find monster with lowest hp
+    findLowestHP(prev, next) {
+      return prev.health < next.health ? prev : next;
     },
   },
   mounted() {
@@ -814,7 +1013,23 @@ removeMonsterFromDeployed(monsterInfo) {
   transition: all 0.3s ease;
 }
 
+.flip-list-2-move {
+  transition: transform 0.5s ease;
+}
+
+.flip-list-2-leave-to {
+  transform: translateY(50px);
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
 .animate-deployed-move {
   transition: transform 0.5s ease;
+}
+
+.animate-deployed-leave-to {
+  transform: translateX(200px);
+  opacity: 0;
+  transition: all 0.5s ease;
 }
 </style>

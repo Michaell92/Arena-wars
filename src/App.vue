@@ -17,11 +17,5 @@ export default {
 <style lang="scss">
 @import "./scss/style.scss";
 
-#app {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #fff;
-}
+// globalni stilovi i animacije
 </style>

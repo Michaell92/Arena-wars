@@ -8,13 +8,113 @@
   // background-color: $primary-2;
   border-radius: 10px;
 
-  #game-reset {
-    font-size: 25px;
-    color: blue;
-    cursor: pointer;
-    font-weight: bold;
+  #top {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    width: 100%;
     margin-bottom: 20px;
+    #game-reset {
+      font-size: 24px;
+      color: $primary-2;
+      cursor: pointer;
+      font-weight: bold;
+      border-bottom: 3px solid $primary-2;
+      border-radius: 5px;
+      padding: 0 5px;
+    }
+    #switch {
+      display: flex;
+      p {
+        font-size: 20px;
+        color: $primary-2;
+        font-weight: bold;
+        margin-right: 10px;
+      }
+      .first,
+      .second {
+        position: absolute;
+        background: rgb(234, 231, 239);
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+      }
+
+      .button {
+        position: relative;
+        top: 50%;
+        width: 74px;
+        height: 36px;
+        overflow: hidden;
+      }
+
+      .button,
+      .button .second {
+        border-radius: 100px;
+      }
+
+      .button.b2 {
+        border-radius: 2px;
+      }
+
+      .checkbox {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
+        z-index: 3;
+      }
+
+      .first {
+        z-index: 2;
+      }
+
+      .second {
+        width: 100%;
+        background-color: #ced9de;
+        transition: 0.3s ease all;
+        z-index: 1;
+      }
+
+      /* Button 1 */
+      #button-1 .first:before {
+        content: 'ON';
+        position: absolute;
+        top: 4px;
+        left: 4px;
+        width: 20px;
+        height: 10px;
+        color: #fff;
+        font-size: 10px;
+        font-weight: bold;
+        text-align: center;
+        line-height: 1;
+        padding: 9px 4px;
+        background-color: #03a9f4;
+        border-radius: 50%;
+        transition: 0.3s cubic-bezier(0.18, 0.89, 0.35, 1.15) all;
+      }
+
+      #button-1 .checkbox:checked + .first:before {
+        content: 'OFF';
+        left: 42px;
+        background-color: #f44336;
+      }
+
+      #button-1 .checkbox:checked ~ .second {
+        background-color: #fcebeb;
+      }
+
+      #button-1 .first,
+      #button-1 .first:before,
+      #button-1 .second {
+        transition: 0.3s ease all;
+      }
+    }
   }
+
   #player-1,
   #player-2 {
     display: flex;
@@ -23,6 +123,7 @@
   #player-main-section {
     // display: flex;
     width: 100%;
+    min-height: 200px;
     border: solid 5px lightblue;
     border-radius: 10px;
     margin: 10px;
@@ -42,7 +143,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    img {
+    button img {
       width: 100px;
       cursor: pointer;
     }
@@ -51,6 +152,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-direction: column;
     position: relative;
     #instruction {
       position: absolute;
@@ -58,6 +160,17 @@
       font-size: 15px;
       font-weight: bold;
       color: rgb(105, 56, 145);
+    }
+    #end-turn {
+      position: absolute;
+      top: 10%;
+      cursor: pointer;
+      border-bottom: 3px solid $primary-2;
+      border-radius: 5px;
+      padding: 0 2px;
+      color: $primary-2;
+      font-weight: bold;
+      font-size: 20px;
     }
   }
   .player-info {
@@ -73,8 +186,11 @@
       border-radius: 10px;
     }
     #bot-icon {
-      width: 50px;
+      width: 65px;
       margin-left: 20px;
+      padding: 2px;
+      background: transparent;
+      border-radius: 10px;
       cursor: pointer;
     }
     .player-right {
@@ -84,6 +200,7 @@
       // align-self: flex-start;
     }
     .player-hp {
+      position: relative;
       color: green;
     }
     .player-energy {
@@ -110,22 +227,27 @@
     width: 100%;
     border: 5px inset rgba(244, 0, 0, 0.6);
     border-radius: 20px;
+    background-color: $battle-color;
     margin: 10px;
     padding: 10px;
+    z-index: 5;
 
     #player-1-deployed,
     #player-2-deployed {
       display: flex;
+      background-color: $battle-color;
     }
 
     h1 {
       font-size: 35px;
-      color: rgb(218, 204, 232);
+      color: rgb(235, 164, 164);
+      background-color: $battle-color;
     }
   }
 }
 
-#ready-popup {
+#ready-popup,
+#gameover {
   position: fixed;
   z-index: 10;
   top: 50%;
@@ -133,18 +255,93 @@
   margin-right: -50%;
   transform: translate(-50%, -50%);
   // transition: opacity 1s linear;
-  border: 3px solid lightblue;
-  border-radius: 5px;
+  border: 5px solid $primary-2;
+  border-radius: 10px;
   font-size: 30px;
   font-weight: bold;
   color: $primary-2;
   padding: 10px;
 }
 
-.fade-leave-active {
-  transition: opacity 1.5s ease-in-out;
+.attackable {
+  box-shadow: 2px 2px 28px rgba(227, 45, 45, 0.7);
 }
 
-.fade-leave-to {
+.fade-out-enter-active,
+.fade-out-leave-active {
+  transition: opacity 0.5s ease-in-out;
+}
+
+.fade-out-enter-from,
+.fade-out-leave-to {
   opacity: 0;
+}
+
+#arrow {
+  position: absolute;
+  margin-top: 180px;
+  border: ridge rgb(159, 10, 159);
+  border-width: 0 10px 10px 0;
+  padding: 15px;
+  border-radius: 7px;
+  opacity: 0.9;
+  animation: float 1.5s linear infinite;
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0) rotate(-135deg);
+  }
+  50% {
+    transform: translateY(40%) rotate(-135deg);
+  }
+  100% {
+    transform: translateY(0) rotate(-135deg);
+  }
+}
+
+// Animations
+
+#deployInstruction,
+#fightInstruction {
+  font-size: 16px;
+  font-weight: bold;
+  color: $primary-2;
+  padding-top: 20px;
+}
+
+#fightInstruction {
+  background-color: rgb(214, 237, 229);
+}
+
+// Attack info
+
+.attack-info-player {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%, -50%);
+  color: red;
+  background: transparent;
+  font-size: 18px;
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+  font-weight: bold;
+}
+
+// .attack-message-enter-active {
+//   transition: all 0.2s ease-out;
+// }
+
+.attack-message-leave-active {
+  transition: all 1s ease;
+}
+
+// .attack-message-enter-from {
+//   opacity: 0;
+// }
+
+.attack-message-leave-to {
+  opacity: 0;
+  top: -50px;
 }

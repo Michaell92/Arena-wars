@@ -4,7 +4,7 @@
   // max-width: 1400px;
   padding: 50px;
   margin: 10px auto;
-  overflow: hidden;
+  // overflow: hidden;
 }
 
 .lead {
@@ -47,19 +47,23 @@ button {
   outline: none;
 }
 
+.marginTop {
+  margin-top: 20px;
+}
+
 $spaceamounts: (1, 2, 3, 4, 5);
 
 @each $space in $spaceamounts {
-  .m-#{$space} {
+  .m#{$space} {
     margin: #{$space}rem;
   }
-  .my-#{$space} {
+  .my#{$space} {
     margin: #{$space}rem 0;
   }
-  .p-#{$space} {
+  .p#{$space} {
     padding: #{$space}rem;
   }
-  .py-#{$space} {
+  .py#{$space} {
     padding: #{$space}rem 0;
   }
 }

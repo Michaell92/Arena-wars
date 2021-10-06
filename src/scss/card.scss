@@ -1,12 +1,20 @@
 @import 'variables';
 
+#main-card {
+  overflow: visible;
+}
+
+.battleColor {
+  background-color: $battle-color;
+}
+
 #card-container {
   position: relative;
   display: flex;
+  overflow: visible;
   align-items: center;
   justify-content: space-between;
   flex-direction: column;
-  overflow: hidden;
   background: aliceblue;
   width: 130px;
   height: 210px;
@@ -21,6 +29,7 @@
     align-items: center;
     justify-content: center;
     flex-direction: column;
+
     img {
       width: 40px;
     }
@@ -77,9 +86,15 @@
   }
 }
 
+// Error info
+
 .cardActive {
   transform: scale(1.02);
   box-shadow: 1px 1px 27px -2px rgba(96, 0, 255, 0.7);
+}
+
+.attackable {
+  box-shadow: 1px 1px 18px -2px rgba(227, 45, 45, 0.7);
 }
 
 .errorActive {
@@ -97,4 +112,36 @@
 .error-fade-enter-from,
 .error-fade-leave-to {
   opacity: 0;
+}
+
+// Attack info
+
+.attack-info {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%, -50%);
+  color: red;
+  background: transparent;
+  font-size: 20px;
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+  font-weight: bold;
+}
+
+// .attack-message-enter-active {
+//   transition: all 0.2s ease-out;
+// }
+
+.attack-message-leave-active {
+  transition: all 1s ease;
+}
+
+// .attack-message-enter-from {
+//   opacity: 0;
+// }
+
+.attack-message-leave-to {
+  opacity: 0;
+  top: -50px;
 }

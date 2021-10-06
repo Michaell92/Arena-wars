@@ -5,6 +5,7 @@ $primary-color: #036ffc;
 $primary-2: rgb(37, 12, 57);
 $secondary-color: #03041c;
 $primary-light: (lighten($primary-color, 40%));
+$battle-color: rgb(214, 237, 229);
 
 @function set-text-color($color) {
   @if (lightness($color) > 70) {

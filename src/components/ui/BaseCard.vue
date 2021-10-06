@@ -1,9 +1,24 @@
 <template>
-  <div>
+  <div id="main-card" :class="{ battleColor: deck === 'deployed' }">
     <div
       id="card-container"
-      :class="['no-select', { cardActive: handActive && !energyError }]"
+      :class="[
+        'no-select',
+        {
+          cardActive: handActive && !energyError && player === 'two',
+          attackable:
+            activeFightCard.length &&
+            activeCardHand.length &&
+            player === 'one' &&
+            deck === 'deployed',
+        },
+      ]"
     >
+      <transition name="attack-message">
+        <p v-if="attackInfo" class="attack-info">
+          {{ hpChange.health }}
+        </p>
+      </transition>
       <div class="card-section" id="card-top-info">
         <span id="card-health">HP: {{ health }}</span>
         <span id="card-negative-status"></span>
@@ -56,10 +71,12 @@ export default {
     specialDesc: {
       type: String,
       required: false,
+      default: "",
     },
     specialEffect: {
       type: String,
       required: false,
+      default: "",
     },
     health: {
       type: Number,
@@ -80,16 +97,39 @@ export default {
     activeCardHand: {
       type: String,
       required: false,
+      default: "",
+    },
+    activeFightCard: {
+      type: String,
+      required: false,
+      default: "",
     },
     energyError: {
       type: Boolean,
       required: false,
+      default: false,
     },
     turnError: {
       type: Boolean,
       required: false,
+      default: false,
     },
     player: {
+      type: String,
+      required: false,
+    },
+    hpChange: {
+      type: Object,
+      required: false,
+      default() {
+        return {
+          active: false,
+          name: "",
+          player: "",
+        };
+      },
+    },
+    deck: {
       type: String,
       required: false,
     },
@@ -121,6 +161,14 @@ export default {
     },
     turnActive() {
       return this.turnError && this.handActive;
+    },
+    // Match attack info on correct card
+    attackInfo() {
+      return (
+        this.hpChange.active &&
+        this.hpChange.name === this.name &&
+        this.hpChange.player === this.player
+      );
     },
   },
 };
