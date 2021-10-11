@@ -6,7 +6,7 @@
         <img src="~@/assets/swords.svg" alt="Arenawars-logo" />
       </div>
     </router-link>
-    <a href="https://github.com/anarchist01/Arena-wars" target="_blank"
+    <a href="https://github.com/michaell92/Arena-wars" target="_blank"
       ><h2>Github</h2></a
     >
   </div>
