@@ -1,6 +1,6 @@
-import { createStore } from 'vuex';
+import { createStore } from "vuex";
 
-import gameState from './gameState.js';
+import gameState from "./gameState.js";
 
 const store = createStore({
   modules: {

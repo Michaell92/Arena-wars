@@ -19,3 +19,9 @@ $battle-color: rgb(214, 237, 229);
   background-color: $color;
   color: set-text-color($color);
 }
+
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

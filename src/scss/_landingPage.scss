@@ -1,11 +1,9 @@
-@import 'utilities';
-
 #main {
   display: flex;
   align-items: center;
   justify-content: space-around;
   flex-direction: column;
-  // background-color: $primary-2;
+  margin-bottom: 5rem;
   border-radius: 10px;
 
   #top {
@@ -24,7 +22,7 @@
       padding: 0 5px;
     }
     #switch {
-      display: flex;
+      @include flex-center;
       p {
         font-size: 20px;
         color: $primary-2;
@@ -119,8 +117,12 @@
   #player-2 {
     display: flex;
     width: 100%;
+
+    @media screen and (max-width: 500px) {
+      flex-direction: column;
+    }
   }
-  #player-main-section {
+  .player-main-section {
     // display: flex;
     width: 100%;
     min-height: 200px;
@@ -128,6 +130,16 @@
     border-radius: 10px;
     margin: 10px;
     padding: 10px;
+
+    @media screen and (max-width: 500px) {
+      order: 1;
+    }
+  }
+  #player-1 .player-main-section {
+    border-color: red;
+  }
+  #player-2 .player-main-section {
+    order: 0;
   }
   #player-1-hand,
   #player-2-hand {
@@ -135,6 +147,11 @@
     align-items: center;
     justify-content: center;
     flex-wrap: wrap;
+    max-height: 50vh;
+
+    @media screen and (max-width: 1200px) {
+      overflow: auto;
+    }
   }
   #player-1-hand {
   }
@@ -147,6 +164,11 @@
       width: 100px;
       cursor: pointer;
     }
+
+    @media screen and (max-width: 500px) {
+      margin-top: 1rem;
+      flex-direction: row;
+    }
   }
   #player-2-deck {
     display: flex;
@@ -154,6 +176,10 @@
     justify-content: center;
     flex-direction: column;
     position: relative;
+
+    @media screen and (max-width: 500px) {
+      flex-direction: row;
+    }
     #instruction {
       position: absolute;
       margin-top: 170px;
@@ -171,6 +197,10 @@
       color: $primary-2;
       font-weight: bold;
       font-size: 20px;
+
+      @media screen and (max-width: 500px) {
+        right: 8%;
+      }
     }
   }
   .player-info {
@@ -187,7 +217,7 @@
     }
     #bot-icon {
       width: 65px;
-      margin-left: 20px;
+      margin: 10px 0 0;
       padding: 2px;
       background: transparent;
       border-radius: 10px;
@@ -195,9 +225,6 @@
     }
     .player-right {
       display: flex;
-    }
-    .player-icon {
-      // align-self: flex-start;
     }
     .player-hp {
       position: relative;
@@ -218,6 +245,13 @@
     }
   }
 
+  .player-icon {
+    @include flex-center;
+    flex-direction: column;
+    span {
+      color: red;
+    }
+  }
   #battleground {
     display: flex;
     align-items: center;
@@ -225,7 +259,7 @@
     flex-direction: column;
     min-height: 100px;
     width: 100%;
-    border: 5px inset rgba(244, 0, 0, 0.6);
+    border: 5px inset rgb(67 82 193 / 60%);
     border-radius: 20px;
     background-color: $battle-color;
     margin: 10px;
@@ -235,7 +269,12 @@
     #player-1-deployed,
     #player-2-deployed {
       display: flex;
+      flex-wrap: wrap;
+      max-height: 50vh;
       background-color: $battle-color;
+      @media screen and (max-width: 1200px) {
+        overflow: auto;
+      }
     }
 
     h1 {
@@ -304,14 +343,18 @@
 
 #deployInstruction,
 #fightInstruction {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: bold;
-  color: $primary-2;
-  padding-top: 20px;
+  color: #fff;
+  margin: 20px auto 0 auto;
+  width: fit-content;
+  padding: 10px;
+  background-color: rgb(117, 118, 221);
+  border-radius: 10px;
 }
 
 #fightInstruction {
-  background-color: rgb(214, 237, 229);
+  // background-color: rgb(214, 237, 229);
 }
 
 // Attack info

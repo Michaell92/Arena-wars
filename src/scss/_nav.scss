@@ -1,0 +1,21 @@
+h2 {
+  /* margin: 50px; */
+}
+
+#main-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  border-bottom: 5px solid blueviolet;
+  width: 100%;
+
+  #homepage {
+    @include flex-center;
+
+    img {
+      width: 40px;
+      margin-left: 10px;
+    }
+  }
+}

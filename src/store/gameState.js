@@ -1,4 +1,4 @@
-import defaultState from './state.js';
+import defaultState from "./state.js";
 
 export default {
   state() {
@@ -12,7 +12,7 @@ export default {
   },
   actions: {
     resetState({ commit }) {
-      commit('resetDefault');
+      commit("resetDefault");
     },
   },
   getters: {

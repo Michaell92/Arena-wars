@@ -1,12 +1,8 @@
 <template>
   <div class="container">
     <transition name="game-over">
-      <game-over
-        v-if="(playerOneHP <= 0 || playerTwoHP <= 0) && showPopup"
-        id="gameover"
-        :player="playerOneHP <= 0 ? 'One' : playerTwoHP <= 0 ? 'Two' : ''"
-        @close="closePopup($event)"
-      ></game-over>
+      <game-over v-if="(playerOneHP <= 0 || playerTwoHP <= 0) && showPopup" id="gameover"
+        :player="playerOneHP <= 0 ? 'One' : playerTwoHP <= 0 ? 'Two' : ''" @close="closePopup($event)"></game-over>
     </transition>
     <transition name="fade">
       <div v-if="playerTwoReady" id="ready-popup">Your turn!</div>
@@ -26,39 +22,30 @@
 
       <!-- First player base -->
       <div id="player-1">
-        <div id="player-main-section">
+        <div class="player-main-section">
           <!-- Player info -->
           <div class="player-info">
             <div class="player-icon">
               <span>AI</span>
-              <img
-                src="~@/assets/bot.svg"
-                alt="bot"
-                id="bot-icon"
-                :class="{
-                  attackable:
-                    Object.keys(activatedCardHand).length &&
-                    Object.keys(activatedFightCard).length,
-                }"
-                @click="
-                  attackedPlayerOne(
-                    activatedFightCard,
-                    this.playerTwoFightingPhase
-                  )
-                "
-              />
+              <img src="~@/assets/bot.svg" alt="bot" id="bot-icon" :class="{
+                attackable:
+                  Object.keys(activatedCardHand).length &&
+                  Object.keys(activatedFightCard).length,
+              }" @click="
+  attackedPlayerOne(
+    activatedFightCard,
+    this.playerTwoFightingPhase
+  )
+" />
             </div>
             <div class="player-right">
               <div class="player-hp">
                 <transition name="attack-message">
-                  <p
-                    v-if="
-                      hpChange.name === 'player' &&
-                      hpChange.player === 'one' &&
-                      hpChange.active
-                    "
-                    class="attack-info"
-                  >
+                  <p v-if="
+                    hpChange.name === 'player' &&
+                    hpChange.player === 'one' &&
+                    hpChange.active
+                  " class="attack-info">
                     {{ hpChange.health }}
                   </p>
                 </transition>
@@ -74,19 +61,9 @@
             <div id="player-1-hand" :class="{ m1: playerOneHand.length > 0 }">
               <!-- <img src="@/assets/card-game.svg" alt="card" /> -->
               <transition-group name="flip-list-2">
-                <base-card
-                  v-for="card in playerOneHand"
-                  :key="card.name"
-                  :name="card.name"
-                  :attack="card.attack"
-                  :defense="card.defense"
-                  :specialDesc="card.specialDesc"
-                  :specialEffect="card.specialEffect"
-                  :health="card.health"
-                  :race="card.race"
-                  :cost="card.cost"
-                  :cardImage="card.image"
-                ></base-card>
+                <base-card v-for="card in playerOneHand" :key="card.name" :name="card.name" :attack="card.attack"
+                  :defense="card.defense" :specialDesc="card.specialDesc" :specialEffect="card.specialEffect"
+                  :health="card.health" :race="card.race" :cost="card.cost" :cardImage="card.image"></base-card>
               </transition-group>
             </div>
           </div>
@@ -94,11 +71,7 @@
         <div id="player-1-deck">
           <!-- Button for dealing a card from the deck -->
           <button class="no-select">
-            <img
-              src="@/assets/cards.svg"
-              alt="card-deck"
-              style="cursor: default"
-            />
+            <img src="@/assets/cards.svg" alt="card-deck" style="cursor: default" />
           </button>
         </div>
       </div>
@@ -107,96 +80,47 @@
       <div id="battleground">
         <div id="player-1-deployed">
           <transition-group name="animate-deployed">
-            <base-card
-              v-for="card in playerOneDeployedDeck"
-              :key="card.name"
-              :name="card.name"
-              :attack="card.attack"
-              :defense="card.defense"
-              :specialDesc="card.specialDesc"
-              :specialEffect="card.specialEffect"
-              :health="card.health"
-              :race="card.race"
-              :cost="card.cost"
-              :cardImage="card.image"
-              :activeCardHand="activatedCardHand.name"
-              :activeFightCard="activatedFightCard.name"
-              player="one"
-              deck="deployed"
-              :hpChange="hpChange"
-              @monsterDestroyed="removeMonsterFromDeployed"
-              @click="
+            <base-card v-for="card in playerOneDeployedDeck" :key="card.name" :name="card.name" :attack="card.attack"
+              :defense="card.defense" :specialDesc="card.specialDesc" :specialEffect="card.specialEffect"
+              :health="card.health" :race="card.race" :cost="card.cost" :cardImage="card.image"
+              :activeCardHand="activatedCardHand.name" :activeFightCard="activatedFightCard.name" player="one"
+              deck="deployed" :hpChange="hpChange" @monsterDestroyed="removeMonsterFromDeployed" @click="
                 attacked(
                   activatedFightCard,
                   card,
                   playerOneDeployedDeck,
                   this.playerTwoFightingPhase
                 )
-              "
-            ></base-card>
+              "></base-card>
           </transition-group>
         </div>
         <h1 class="no-select">Battleground</h1>
-        <div id="player-2-deployed">
+        <div id="player-2-deployed" ref='playerTwo'>
           <transition-group name="animate-deployed">
-            <base-card
-              v-for="card in playerTwoDeployedDeck"
-              :key="card.name"
-              :name="card.name"
-              :attack="card.attack"
-              :defense="card.defense"
-              :specialDesc="card.specialDesc"
-              :specialEffect="card.specialEffect"
-              :health="card.health"
-              :race="card.race"
-              :cost="card.cost"
-              :cardImage="card.image"
-              :activeCardHand="activatedCardHand.name"
-              :turnError="turnError"
-              player="two"
-              deck="deployed"
-              :hpChange="hpChange"
-              @monsterDestroyed="removeMonsterFromDeployed"
-              @click="selectAttackingCard(card, playerTwoDeployedDeck)"
-            ></base-card>
+            <base-card v-for="card in playerTwoDeployedDeck" :key="card.name" :name="card.name" :attack="card.attack"
+              :defense="card.defense" :specialDesc="card.specialDesc" :specialEffect="card.specialEffect"
+              :health="card.health" :race="card.race" :cost="card.cost" :cardImage="card.image"
+              :activeCardHand="activatedCardHand.name" :turnError="turnError" player="two" deck="deployed"
+              :hpChange="hpChange" @monsterDestroyed="removeMonsterFromDeployed"
+              @click="selectAttackingCard(card, playerTwoDeployedDeck)"></base-card>
           </transition-group>
         </div>
 
-        <div
-          v-if="
-            playerTwoFightingPhase &&
-            Object.keys(activatedFightCard).length === 0 &&
-            !helperSwitch &&
-            activePlayer === 'Player-2'
-          "
-          id="fightInstruction"
-        >
+        <div v-if="fightReady" id="fightInstruction">
           Select attacking card!
         </div>
       </div>
       <!-- Second player base -->
       <div id="player-2">
-        <div id="player-main-section">
+        <div class="player-main-section">
           <div id="player-2-main">
-            <div id="player-2-hand">
+            <div id="player-2-hand" ref='playerHand'>
               <transition-group name="flip-list">
-                <base-card
-                  v-for="card in playerTwoHand"
-                  :key="card.name"
-                  :name="card.name"
-                  :attack="card.attack"
-                  :defense="card.defense"
-                  :specialDesc="card.specialDesc"
-                  :specialEffect="card.specialEffect"
-                  :health="card.health"
-                  :race="card.race"
-                  :cost="card.cost"
-                  :cardImage="card.image"
-                  :activeCardHand="activatedCardHand.name"
-                  :energyError="energyError"
-                  :turnError="turnError"
-                  player="two"
-                  @click="
+                <base-card v-for="card in playerTwoHand" :key="card.name" :name="card.name" :attack="card.attack"
+                  :defense="card.defense" :specialDesc="card.specialDesc" :specialEffect="card.specialEffect"
+                  :health="card.health" :race="card.race" :cost="card.cost" :cardImage="card.image"
+                  :activeCardHand="activatedCardHand.name" :energyError="energyError" :turnError="turnError"
+                  player="two" @click="
                     changeHandCardStatusAndDeploy(
                       playerTwoDeployedDeck,
                       playerTwoHand,
@@ -204,20 +128,15 @@
                       playerTwoEnergy,
                       'two'
                     )
-                  "
-                ></base-card>
+                  "></base-card>
               </transition-group>
             </div>
           </div>
-          <div
-            v-if="
-              playerTwoDeploymentPhase &&
-              !helperSwitch &&
-              activePlayer === 'Player-2'
-            "
-            id="deployInstruction"
-            class="text-center"
-          >
+          <div v-if="
+            playerTwoDeploymentPhase &&
+            !helperSwitch &&
+            activePlayer === 'Player-2'
+          " id="deployInstruction" class="text-center">
             Tap twice on card to deploy!
           </div>
           <div class="player-info">
@@ -225,14 +144,11 @@
             <div class="player-right">
               <div class="player-hp">
                 <transition name="attack-message">
-                  <p
-                    v-if="
-                      hpChange.name === 'player' &&
-                      hpChange.player === 'two' &&
-                      hpChange.active
-                    "
-                    class="attack-info-player"
-                  >
+                  <p v-if="
+                    hpChange.name === 'player' &&
+                    hpChange.player === 'two' &&
+                    hpChange.active
+                  " class="attack-info-player">
                     {{ hpChange.health }}
                   </p>
                 </transition>
@@ -246,24 +162,18 @@
         </div>
         <div id="player-2-deck">
           <transition name="fade-out">
-            <p
-              v-if="activePlayer === 'Player-2' && currentMove > 0"
-              id="end-turn"
-              @click="endCurrentTurnAndInitiateNext('two')"
-            >
+            <p v-if="activePlayer === 'Player-2' && currentMove > 0" id="end-turn"
+              @click="endCurrentTurnAndInitiateNext('two')">
               End turn
             </p>
           </transition>
-          <button
-            @click="
-              playerTwoCardDeal(
-                playerTwoDeck,
-                playerTwoHand,
-                playerTwoDeployedDeck
-              )
-            "
-            class="no-select"
-          >
+          <button @click="
+            playerTwoCardDeal(
+              playerTwoDeck,
+              playerTwoHand,
+              playerTwoDeployedDeck
+            )
+          " class="no-select">
             <img src="@/assets/cards.svg" alt="card-deck" />
           </button>
           <transition name="fade-out">
@@ -271,21 +181,17 @@
               Click on deck to draw a card!
             </div>
           </transition>
-          <div
-            id="arrow"
-            v-if="
-              currentMove > 0 &&
-              playerTwoDrawAvailable &&
-              activePlayer === 'Player-2'
-            "
-          ></div>
+          <div id="arrow" v-if="
+            currentMove > 0 &&
+            playerTwoDrawAvailable &&
+            activePlayer === 'Player-2'
+          "></div>
         </div>
       </div>
     </div>
   </div>
 </template>
 
-        
 <script>
 import BaseCard from "../components/ui/BaseCard.vue";
 import GameOver from "../components/ui/GameOver.vue";
@@ -338,6 +244,18 @@ export default {
         this.playerTwoDraw = false;
       }
     },
+    fightReady(val) {
+      if (val) {
+        const hand = this.$refs.playerTwo
+        this.scrollToTop(hand)
+      }
+    },
+    playerTwoReady(val) {
+      if (val) {
+        const hand = this.$refs.playerHand
+        this.scrollToTop(hand)
+      }
+    }
   },
   computed: {
     // Main card set
@@ -418,6 +336,17 @@ export default {
       }
 
       return false;
+    },
+    deployReady() {
+      return this.playerTwoDrawAvailable || this.playerTwoDeploymentPhase
+    },
+    fightReady() {
+      return (
+        this.playerTwoFightingPhase &&
+        Object.keys(this.activatedFightCard).length === 0 &&
+        !this.helperSwitch &&
+        this.activePlayer === "Player-2"
+      );
     },
   },
   methods: {
@@ -993,6 +922,9 @@ export default {
     findLowestHP(prev, next) {
       return prev.health < next.health ? prev : next;
     },
+    scrollToTop(element) {
+      element.scrollIntoView({ behavior: "smooth", block: "start" })
+    }
   },
   mounted() {
     console.log();
